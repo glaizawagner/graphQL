@@ -27,7 +27,6 @@ const books = [
 	{ id: 8, name: 'Beyond the Shadows', authorId: 3 }
 ]
 
-
 const BookType = new GraphQLObjectType({
   name: 'Book',
   description: 'This represents a book written by an author',
@@ -93,10 +92,42 @@ const RootQueryType = new GraphQLObjectType({
   })
 });
 
-const schema = new GraphQLSchema({
-  query: RootQueryType
+//mutation is where we can do post, get, etc.
+const RootMutationType = new GraphQLObjectType({
+  name: 'Mutation',
+  description: 'Root Mutation',
+  fields: () => ({
+    addBook: {
+      type: BookType,
+      description: 'Add a Book',
+      args: {
+        name: { type: GraphQLNonNull(GraphQLString) },
+        authorId: { type: GraphQLNonNull(GraphQLInt) },
+      },
+      resolve: (parent, args) => {
+        const book = { id: books.length + 1, name: args.name, authorId: args.authorId }
+        books.push(book)
+        return book;
+      }
+    },
+    addAuthor: {
+      type: AuthorType,
+      description: 'Add an Auhtor',
+      args: {
+        name: { type: GraphQLNonNull(GraphQLString) }
+      },
+      resolve: (parent, args) => {
+        const author = { id: authors.length + 1, name: args.name }
+        books.push(author)
+        return author;
+      }
+    }
+  })
 });
-
+const schema = new GraphQLSchema({
+  query: RootQueryType,
+  mutation: RootMutationType
+});
 
 app.use('/graphql', graphqlHTTP({
   schema: schema,
